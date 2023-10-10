@@ -16,8 +16,8 @@ pipeline {
     }
     stage(" Generate backend image"){
       steps{
-        dir("JenkinsHello"){
-          sh "maven clean install"
+        dir("jenkinsHello"){
+          sh "mvn clean install"
           sh "docker build -t JenkinsDockerDone"
         }
       }
@@ -25,7 +25,7 @@ pipeline {
     stage ("Run docker compose")
     {
       steps{
-        dir("JenkinsHello")
+        dir("jenkinsHello")
         {
           sh "docker compose up -d"
         }
