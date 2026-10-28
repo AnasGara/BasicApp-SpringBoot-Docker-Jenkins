@@ -1,36 +1,28 @@
 pipeline {
   agent any
-  tools {
-    maven 'maven'
+  tools { maven 'maven' }
+  options {
+    skipDefaultCheckout(true)
+    disableConcurrentBuilds()
+    timeout(time: 20, unit: 'MINUTES')
+    buildDiscarder(logRotator(numToKeepStr: '20'))
   }
   stages {
-    stage ("Clean up"){
+    stage('Checkout') {
       steps {
         deleteDir()
+        checkout scm
       }
     }
-    stage ("Clone repo"){
-      steps {
-        sh "git clone https://github.com/AnasGara/jenkinsHello"
-      }
+    stage('Verify') {
+      steps { sh 'mvn --batch-mode --no-transfer-progress clean verify' }
+      post { always { junit 'target/surefire-reports/*.xml' } }
     }
-    stage(" Generate backend image"){
-      steps{
-        dir("jenkinsHello"){
-          sh "mvn clean install"
-          sh "docker build -t JenkinsDockerDone"
-        }
-      }
+    stage('Build image') {
+      steps { sh 'docker build --tag "jenkins-hello:$BUILD_NUMBER" .' }
     }
-    stage ("Run docker compose")
-    {
-      steps{
-        dir("jenkinsHello")
-        {
-          sh "docker compose up -d"
-        }
-      }
+    stage('Validate Compose') {
+      steps { sh 'docker compose config --quiet' }
     }
   }
-  
 }

@@ -1,5 +1,8 @@
 services:
   spring-boot-app:
-    image: JenkinsDockerDone
+    image: ${APP_IMAGE:-jenkins-hello:local}
+    build: .
     ports:
-      - "0.0.0.0:8084:8080"
+      - "127.0.0.1:8084:8080"
+    init: true
+    restart: unless-stopped
